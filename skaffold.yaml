@@ -1,0 +1,38 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: travelo
+
+build:
+  tagPolicy:
+    inputDigest: {}          # le tag change dès que les sources changent
+  artifacts:
+    - image: fatiza2525/travelo-backend
+      context: travelo_backend
+      docker:
+        dockerfile: Dockerfile
+    - image: fatiza2525/travelo-frontend
+      context: travelo_frontend
+      docker:
+        dockerfile: Dockerfile
+  local:
+    push: false              # avec Minikube, l'image est construite dans le démon Docker du cluster
+
+manifests:
+  rawYaml:
+    - k8s/*.yaml
+
+deploy:
+  kubectl: {}
+
+portForward:
+  - resourceType: service
+    resourceName: travelo-frontend
+    namespace: travelo
+    port: 3000
+    localPort: 3000
+  - resourceType: service
+    resourceName: travelo-backend
+    namespace: travelo
+    port: 8080
+    localPort: 8080

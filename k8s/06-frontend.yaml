@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travelo-frontend
+  namespace: travelo
+  labels:
+    app: travelo-frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: travelo-frontend
+  template:
+    metadata:
+      labels:
+        app: travelo-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: fatiza2525/travelo-frontend:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 3
+            failureThreshold: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 20
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: travelo-frontend
+  namespace: travelo
+  labels:
+    app: travelo-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: travelo-frontend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
